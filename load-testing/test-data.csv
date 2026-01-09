@@ -1,0 +1,21 @@
+email,password,name,department
+student1@example.com,password123,John Doe,Computer Science
+faculty1@example.com,password123,Dr. Jane Smith,Information Technology
+organizer1@example.com,password123,Mike Johnson,Electronics
+student2@example.com,password123,Alice Brown,Mechanical
+faculty2@example.com,password123,Dr. Bob Wilson,Civil
+organizer2@example.com,password123,Sarah Davis,Computer Science
+student3@example.com,password123,Tom Wilson,Information Technology
+faculty3@example.com,password123,Dr. Lisa Chen,Electronics
+organizer3@example.com,password123,Chris Lee,Mechanical
+student4@example.com,password123,Emma Davis,Civil
+faculty4@example.com,password123,Dr. Mark Taylor,Computer Science
+organizer4@example.com,password123,Jessica White,Information Technology
+student5@example.com,password123,Ryan Garcia,Electronics
+faculty5@example.com,password123,Dr. Amy Rodriguez,Mechanical
+organizer5@example.com,password123,Kevin Brown,Civil
+student6@example.com,password123,Sophie Miller,Computer Science
+faculty6@example.com,password123,Dr. David Jones,Information Technology
+organizer6@example.com,password123,Nathan Clark,Electronics
+student7@example.com,password123,Maya Patel,Mechanical
+faculty7@example.com,password123,Dr. Rachel Green,Civil

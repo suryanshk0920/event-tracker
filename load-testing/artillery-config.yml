@@ -1,0 +1,180 @@
+config:
+  target: 'http://localhost:5000'
+  phases:
+    # Warm-up phase
+    - duration: 30
+      arrivalRate: 5
+      name: "Warm-up phase"
+    # Ramp-up phase  
+    - duration: 60
+      arrivalRate: 10
+      rampTo: 50
+      name: "Ramp-up phase"
+    # Sustained load phase
+    - duration: 120
+      arrivalRate: 50
+      name: "Sustained load phase"
+    # Peak load phase
+    - duration: 60
+      arrivalRate: 100
+      name: "Peak load phase"
+    # Cool-down phase
+    - duration: 30
+      arrivalRate: 10
+      name: "Cool-down phase"
+  
+  # Performance thresholds
+  ensure:
+    maxErrorRate: 5  # Max 5% error rate
+    p95: 2000       # 95% of requests under 2 seconds
+    p99: 5000       # 99% of requests under 5 seconds
+
+  # Test data
+  payload:
+    path: "./test-data.csv"
+    fields:
+      - "email"
+      - "password"
+      - "name"
+      - "department"
+
+  # Variables for testing
+  variables:
+    departments: 
+      - "Computer Science"
+      - "Information Technology" 
+      - "Electronics"
+      - "Mechanical"
+      - "Civil"
+    roles:
+      - "STUDENT"
+      - "FACULTY"
+      - "ORGANIZER"
+
+scenarios:
+  # Authentication load testing
+  - name: "User Authentication Flow"
+    weight: 40
+    flow:
+      - post:
+          url: "/api/auth/register"
+          json:
+            name: "{{ name }}"
+            email: "test{{ $randomNumber(100000, 999999) }}_{{ $randomNumber(1000, 9999) }}@example.com"
+            password: "password123"
+            department: "{{ $pick(departments) }}"
+            role: "{{ $pick(roles) }}"
+            roll_no: "CS{{ $randomNumber(2020, 2024) }}{{ $randomNumber(100000, 999999) }}"
+            division: "{{ $pick(['A', 'B', 'C', 'D']) }}"
+          expect:
+            - statusCode: 201
+          capture:
+            - json: "$.user.email"
+              as: "userEmail"
+      
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "{{ userEmail }}"
+            password: "password123"
+          expect:
+            - statusCode: 200
+          capture:
+            - json: "$.token"
+              as: "authToken"
+            - json: "$.user.id"
+              as: "userId"
+
+  # Events API load testing (tests Redis caching)
+  - name: "Events API Load Test"
+    weight: 30
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "{{ email }}"
+            password: "{{ password }}"
+          expect:
+            - statusCode: 200
+          capture:
+            - json: "$.token"
+              as: "authToken"
+      
+      # Test events listing (should be cached by Redis)
+      - get:
+          url: "/api/events"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+          
+      # Test individual event details
+      - get:
+          url: "/api/events/{{ $randomNumber(1, 10) }}"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: [200, 404]
+
+  # Event creation and checkin flow
+  - name: "Event Creation and Check-in Flow"
+    weight: 20
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "{{ email }}"
+            password: "{{ password }}"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+            - json: "$.user.role"
+              as: "userRole"
+      
+      # Create event (only for organizers)
+      - post:
+          url: "/api/events"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            name: "Load Test Event {{ $randomNumber(1, 1000) }}"
+            description: "Event created during load testing"
+            department: "{{ $pick(departments) }}"
+            date: "{{ $now() }}"
+          ifTrue: "userRole === 'ORGANIZER'"
+          expect:
+            - statusCode: [201, 403]
+          capture:
+            - json: "$.event.id"
+              as: "eventId"
+
+  # Users API load testing
+  - name: "Users API Load Test"
+    weight: 10
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "{{ email }}"
+            password: "{{ password }}"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+      
+      # Test users listing (should be cached)
+      - get:
+          url: "/api/users?role=STUDENT"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: [200, 403]
+
+# Custom functions for reporting
+before:
+  flow:
+    - log: "Starting load test for Event Tracker MVP"
+    - log: "Testing Redis caching, authentication, and API performance"
+
+after:
+  flow:
+    - log: "Load test completed. Check the generated report for Redis performance metrics."

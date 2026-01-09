@@ -1,0 +1,37 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const app_1 = __importDefault(require("./app"));
+const initDb_1 = require("./config/initDb");
+require("./config/redis"); // Initialize Redis connection
+const PORT = process.env.PORT || 5000;
+async function startServer() {
+    try {
+        // Initialize database
+        await (0, initDb_1.initializeDatabase)();
+        console.log('Database initialized successfully');
+        // Start server
+        app_1.default.listen(PORT, () => {
+            console.log(`🚀 Server running on port ${PORT}`);
+            console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
+            console.log(`🔑 Auth endpoints: http://localhost:${PORT}/api/auth`);
+            console.log(`📅 Event endpoints: http://localhost:${PORT}/api/events`);
+        });
+    }
+    catch (error) {
+        console.error('Failed to start server:', error);
+        process.exit(1);
+    }
+}
+// Handle graceful shutdown
+process.on('SIGTERM', () => {
+    console.log('SIGTERM received, shutting down gracefully');
+    process.exit(0);
+});
+process.on('SIGINT', () => {
+    console.log('SIGINT received, shutting down gracefully');
+    process.exit(0);
+});
+startServer();

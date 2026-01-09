@@ -1,0 +1,30 @@
+{
+  "name": "event-tracker-load-testing",
+  "version": "1.0.0",
+  "description": "Load testing suite for Event Tracker MVP with Redis monitoring",
+  "main": "redis-monitor.js",
+  "scripts": {
+    "install-tools": "npm install -g artillery && npm install",
+    "test-cache": "node redis-monitor.js test",
+    "monitor": "node redis-monitor.js monitor",
+    "report": "node redis-monitor.js report",
+    "load-test": "run-load-test.bat",
+    "load-test-ps": "powershell -ExecutionPolicy Bypass -File ./run-load-test.ps1",
+    "load-test-quick": "artillery run artillery-config.yml",
+    "setup": "npm install && npm install -g artillery"
+  },
+  "dependencies": {
+    "redis": "^4.6.0",
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {},
+  "keywords": [
+    "load-testing",
+    "performance",
+    "redis",
+    "artillery",
+    "event-tracker"
+  ],
+  "author": "Event Tracker Team",
+  "license": "MIT"
+}

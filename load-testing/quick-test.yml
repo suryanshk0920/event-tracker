@@ -1,0 +1,41 @@
+config:
+  target: 'http://localhost:5000'
+  phases:
+    - duration: 30
+      arrivalRate: 2
+      name: "Quick verification test"
+  
+  variables:
+    departments: 
+      - "Computer Science"
+      - "Information Technology"
+    roles:
+      - "STUDENT"
+      - "FACULTY"
+
+scenarios:
+  - name: "Quick Registration Test"
+    flow:
+      - post:
+          url: "/api/auth/register"
+          json:
+            name: "Test User {{ $randomNumber(1, 1000) }}"
+            email: "quicktest{{ $timestamp() }}_{{ $randomNumber(1, 100000) }}@example.com"
+            password: "password123"
+            department: "{{ $pick(departments) }}"
+            role: "{{ $pick(roles) }}"
+            roll_no: "CS{{ $timestamp() }}{{ $randomNumber(1000, 9999) }}"
+            division: "{{ $pick(['A', 'B']) }}"
+          expect:
+            - statusCode: 201
+          capture:
+            - json: "$.user.email"
+              as: "userEmail"
+      
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "{{ userEmail }}"
+            password: "password123"
+          expect:
+            - statusCode: 200
