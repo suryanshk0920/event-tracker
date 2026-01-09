@@ -11,12 +11,12 @@ import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Modal } from '@/components/ui/Modal';
-import { 
+import {
   ArrowLeft,
-  Calendar, 
-  Clock, 
-  MapPin, 
-  User, 
+  Calendar,
+  Clock,
+  MapPin,
+  User,
   Users,
   QrCode,
   CheckCircle,
@@ -47,8 +47,9 @@ export default function EventDetailsPage() {
       const eventId = parseInt(id as string);
       const response = await eventsAPI.getEvent(eventId);
       setEvent(response.event);
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to load event');
+    } catch (err) {
+      const error = err as { response?: { data?: { error?: string } } };
+      setError(error.response?.data?.error || 'Failed to load event');
     } finally {
       setLoading(false);
     }
@@ -56,13 +57,13 @@ export default function EventDetailsPage() {
 
   const handleShowQR = async () => {
     if (!event) return;
-    
+
     setQrLoading(true);
     try {
       const response = await eventsAPI.getEventQRCode(event.id);
       setQrCode(response.qr_code);
       setQrModalOpen(true);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to load QR code:', err);
     } finally {
       setQrLoading(false);
@@ -110,7 +111,7 @@ export default function EventDetailsPage() {
   const now = new Date();
   const isPast = eventDate < now;
   const isToday = eventDate.toDateString() === now.toDateString();
-  
+
   const getStatusBadge = () => {
     if (isPast) return <Badge variant="default">Past Event</Badge>;
     if (isToday) return <Badge variant="success">Today</Badge>;
@@ -266,8 +267,8 @@ export default function EventDetailsPage() {
             {isPast && (
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                 <p className="text-sm text-yellow-800">
-                  <strong>Note:</strong> This event has already concluded. 
-                  {user.role === UserRole.STUDENT && !event.is_attending && 
+                  <strong>Note:</strong> This event has already concluded.
+                  {user.role === UserRole.STUDENT && !event.is_attending &&
                     " You may still be able to check in if the organizer allows late attendance."
                   }
                 </p>
@@ -278,7 +279,7 @@ export default function EventDetailsPage() {
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                 <p className="text-sm text-green-800">
                   <strong>Today's Event:</strong> This event is happening today!
-                  {user.role === UserRole.STUDENT && !event.is_attending && 
+                  {user.role === UserRole.STUDENT && !event.is_attending &&
                     " Don't forget to check in when you arrive."
                   }
                 </p>
@@ -298,7 +299,7 @@ export default function EventDetailsPage() {
               )}
 
               {canViewQR && (
-                <Button 
+                <Button
                   variant="outline"
                   onClick={handleShowQR}
                   loading={qrLoading}
@@ -339,17 +340,17 @@ export default function EventDetailsPage() {
                 Students can scan this QR code to check in
               </p>
             </div>
-            
+
             {qrCode && (
               <div className="flex justify-center">
-                <img 
-                  src={qrCode} 
-                  alt="Event QR Code" 
+                <img
+                  src={qrCode}
+                  alt="Event QR Code"
                   className="border rounded-lg shadow-sm max-w-xs"
                 />
               </div>
             )}
-            
+
             <div className="text-xs text-gray-500">
               <p>• QR code is cryptographically signed for security</p>
               <p>• Valid for 24 hours from generation</p>

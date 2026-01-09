@@ -10,11 +10,11 @@ import { Button } from '@/components/ui/Button';
 import { Card, CardHeader, CardContent } from '@/components/ui/Card';
 import { QRScanner } from '@/components/QRScanner';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { 
-  Calendar, 
-  Clock, 
-  MapPin, 
-  User, 
+import {
+  Calendar,
+  Clock,
+  MapPin,
+  User,
   CheckCircle,
   ArrowLeft
 } from 'lucide-react';
@@ -35,7 +35,7 @@ export default function CheckinPage() {
       router.push('/events');
       return;
     }
-    
+
     if (id) {
       loadEvent();
     }
@@ -46,8 +46,9 @@ export default function CheckinPage() {
       const eventId = parseInt(id as string);
       const response = await eventsAPI.getEvent(eventId);
       setEvent(response.event);
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to load event');
+    } catch (err) {
+      const error = err as { response?: { data?: { error?: string } } };
+      setError(error.response?.data?.error || 'Failed to load event');
     } finally {
       setLoading(false);
     }
@@ -55,20 +56,21 @@ export default function CheckinPage() {
 
   const handleQRScan = async (qrData: string) => {
     if (!event || checkinLoading) return;
-    
+
     setCheckinLoading(true);
     setCheckinError('');
 
     try {
       await eventsAPI.checkinToEvent(event.id, { qr_data: qrData });
       setCheckedIn(true);
-      
+
       // Show success message and redirect after delay
       setTimeout(() => {
         router.push('/events');
       }, 3000);
-    } catch (err: any) {
-      setCheckinError(err.response?.data?.error || 'Failed to check in');
+    } catch (err) {
+      const error = err as { response?: { data?: { error?: string } } };
+      setCheckinError(error.response?.data?.error || 'Failed to check in');
     } finally {
       setCheckinLoading(false);
     }
@@ -146,7 +148,7 @@ export default function CheckinPage() {
               <p className="text-sm text-green-700 mb-6">
                 Redirecting to events page in 3 seconds...
               </p>
-              <Button 
+              <Button
                 onClick={() => router.push('/events')}
                 className="bg-green-600 hover:bg-green-700"
               >
@@ -189,7 +191,7 @@ export default function CheckinPage() {
             {event.description && (
               <p className="text-gray-600">{event.description}</p>
             )}
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
               <div className="flex items-center text-gray-700">
                 <Calendar className="w-4 h-4 mr-2 text-blue-500" />
@@ -200,7 +202,7 @@ export default function CheckinPage() {
                   day: 'numeric',
                 })}
               </div>
-              
+
               <div className="flex items-center text-gray-700">
                 <Clock className="w-4 h-4 mr-2 text-green-500" />
                 {eventDate.toLocaleTimeString('en-US', {
@@ -208,12 +210,12 @@ export default function CheckinPage() {
                   minute: '2-digit',
                 })}
               </div>
-              
+
               <div className="flex items-center text-gray-700">
                 <MapPin className="w-4 h-4 mr-2 text-red-500" />
                 {event.department}
               </div>
-              
+
               <div className="flex items-center text-gray-700">
                 <User className="w-4 h-4 mr-2 text-purple-500" />
                 {event.organizer_name}
@@ -223,7 +225,7 @@ export default function CheckinPage() {
             {isPast && (
               <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
                 <p className="text-sm text-yellow-800">
-                  <strong>Note:</strong> This event has already passed, but you can still check in 
+                  <strong>Note:</strong> This event has already passed, but you can still check in
                   if the organizer allows late attendance.
                 </p>
               </div>

@@ -60,8 +60,9 @@ export const ChangePasswordForm: React.FC = () => {
                 logout();
                 router.push('/login');
             }, 2000);
-        } catch (err: any) {
-            setError(err.response?.data?.error || 'Failed to change password');
+        } catch (err) {
+            const error = err as { response?: { data?: { error?: string } } };
+            setError(error.response?.data?.error || 'Failed to change password');
             setLoading(false);
         }
     };

@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Mail, User, GraduationCap, Users } from 'lucide-react';
-import { UserRole } from '@/types';
+import { UserRole, RegisterRequest } from '@/types';
 import { authAPI } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -63,7 +63,7 @@ export const RegisterForm: React.FC = () => {
     setLoading(true);
 
     try {
-      const response = await authAPI.register(data as any);
+      const response = await authAPI.register(data as RegisterRequest);
       setSuccess('✅ User registered successfully! Credentials have been sent to their email.');
       reset(); // Reset form after successful registration
 
@@ -71,8 +71,9 @@ export const RegisterForm: React.FC = () => {
       setTimeout(() => {
         setSuccess('');
       }, 5000);
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Registration failed');
+    } catch (err) {
+      const error = err as { response?: { data?: { error?: string } } };
+      setError(error.response?.data?.error || 'Registration failed');
     } finally {
       setLoading(false);
     }

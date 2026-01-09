@@ -52,7 +52,7 @@ export interface AttendingStudent {
 export interface RegisterRequest {
   name: string;
   email: string;
-  password: string;
+  password?: string;
   roll_no?: string;
   division?: string;
   department: string;

@@ -66,7 +66,7 @@ export default function CreateEventPage() {
     try {
       // Combine date and time
       const eventDateTime = new Date(`${data.date}T${data.time}`);
-      
+
       const eventData = {
         name: data.name,
         description: data.description,
@@ -74,12 +74,13 @@ export default function CreateEventPage() {
         date: eventDateTime.toISOString(),
       };
 
-      const response = await eventsAPI.createEvent(eventData);
-      
+      await eventsAPI.createEvent(eventData);
+
       // Redirect to events page
       router.push('/events');
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to create event');
+    } catch (err) {
+      const error = err as { response?: { data?: { error?: string } } };
+      setError(error.response?.data?.error || 'Failed to create event');
     } finally {
       setLoading(false);
     }
@@ -92,9 +93,8 @@ export default function CreateEventPage() {
   // Get minimum date (today)
   const today = new Date();
   const minDate = today.toISOString().split('T')[0];
-  
+
   // Get minimum time (current time if today is selected)
-  const minTime = today.toTimeString().slice(0, 5);
 
   return (
     <DashboardLayout>
@@ -110,7 +110,7 @@ export default function CreateEventPage() {
           <CardHeader>
             <h2 className="text-lg font-semibold text-gray-900">Event Details</h2>
           </CardHeader>
-          
+
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <Input

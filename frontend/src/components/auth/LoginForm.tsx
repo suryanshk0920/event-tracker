@@ -40,8 +40,9 @@ export const LoginForm: React.FC = () => {
     try {
       await login(data.email, data.password);
       router.push('/dashboard');
-    } catch (err: any) {
-      setError(err.message || 'Login failed');
+    } catch (err) {
+      const error = err as Error;
+      setError(error.message || 'Login failed');
     } finally {
       setLoading(false);
     }

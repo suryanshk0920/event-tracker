@@ -188,8 +188,9 @@ export default function AttendeesPage() {
 
       setEvent(eventResponse.event);
       await loadStudents();
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to load event');
+    } catch (err) {
+      const error = err as { response?: { data?: { error?: string } } };
+      setError(error.response?.data?.error || 'Failed to load event');
     } finally {
       setLoading(false);
     }
@@ -201,7 +202,7 @@ export default function AttendeesPage() {
     setStudentsLoading(true);
     try {
       const eventId = parseInt(id as string);
-      const params: any = {};
+      const params: Record<string, string> = {};
 
       if (selectedDivision) params.division = selectedDivision;
       if (selectedDepartment) params.department = selectedDepartment;
@@ -209,7 +210,7 @@ export default function AttendeesPage() {
       const response = await eventsAPI.getEventStudents(eventId, params);
       setStudents(response.students);
       setFromCache(response.from_cache || false);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to load students:', err);
     } finally {
       setStudentsLoading(false);

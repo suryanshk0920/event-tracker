@@ -46,8 +46,9 @@ export default function StudentsPage() {
     try {
       const response = await usersAPI.getUsers({ role: UserRole.STUDENT });
       setStudents(response.users);
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to load students');
+    } catch (err) {
+      const error = err as { response?: { data?: { error?: string } } };
+      setError(error.response?.data?.error || 'Failed to load students');
     } finally {
       setLoading(false);
     }

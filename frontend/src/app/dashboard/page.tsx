@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/Button';
 const StatCard: React.FC<{
   title: string;
   value: string | number;
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<{ className?: string }>;
   color: string;
 }> = ({ title, value, icon: Icon, color }) => (
   <div className="bg-gradient-to-br from-white to-gray-50/50 overflow-hidden shadow-lg rounded-2xl border border-gray-100 hover-lift group">
@@ -33,6 +33,7 @@ const StatCard: React.FC<{
   </div>
 );
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const WelcomeCard: React.FC<{ user: any; onRefresh: () => void; loading: boolean }> = ({ user, onRefresh, loading }) => (
   <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700 overflow-hidden shadow-2xl rounded-2xl relative">
     {/* Decorative elements */}
@@ -102,20 +103,20 @@ export default function DashboardPage() {
   const loadDashboardData = async () => {
     try {
       setLoading(true);
-      const promises: Promise<any>[] = [eventsAPI.getEvents()];
+      const promises: Promise<unknown>[] = [eventsAPI.getEvents()];
 
       // Only fetch students for faculty and admin
       if ([UserRole.FACULTY, UserRole.ADMIN].includes(user!.role)) {
         promises.push(usersAPI.getUsers({ role: UserRole.STUDENT }));
       }
 
-      const results = await Promise.all(promises);
+      const results = await Promise.all(promises) as [any, any?];
       setEvents(results[0].events);
 
       if (results[1]) {
         setStudents(results[1].users);
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error loading dashboard data:', err);
       setError('Failed to load dashboard data');
     } finally {

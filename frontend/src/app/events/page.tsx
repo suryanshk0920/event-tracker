@@ -297,8 +297,9 @@ export default function EventsPage() {
     try {
       const response = await eventsAPI.getEvents();
       setEvents(response.events);
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to load events');
+    } catch (err) {
+      const error = err as { response?: { data?: { error?: string } } };
+      setError(error.response?.data?.error || 'Failed to load events');
     } finally {
       setLoading(false);
     }
@@ -321,9 +322,10 @@ export default function EventsPage() {
         // Remove from list
         setEvents(events.filter(e => e.id !== event.id));
       }
-    } catch (err: any) {
+    } catch (err) {
+      const error = err as { response?: { data?: { error?: string } } };
       console.error('Delete event error:', err);
-      alert(err.response?.data?.error || 'Failed to delete event');
+      alert(error.response?.data?.error || 'Failed to delete event');
     }
   };
 

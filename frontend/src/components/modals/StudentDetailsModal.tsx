@@ -54,8 +54,9 @@ export const StudentDetailsModal: React.FC<StudentDetailsModalProps> = ({
 
       setStudent(studentResponse.user);
       setEvents(eventsResponse.events);
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to load student details');
+    } catch (err) {
+      const error = err as { response?: { data?: { error?: string } } };
+      setError(error.response?.data?.error || 'Failed to load student details');
     } finally {
       setLoading(false);
     }
