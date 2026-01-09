@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
@@ -30,18 +30,7 @@ export default function CheckinPage() {
   const [checkinError, setCheckinError] = useState('');
   const [checkedIn, setCheckedIn] = useState(false);
 
-  useEffect(() => {
-    if (user && user.role !== UserRole.STUDENT) {
-      router.push('/events');
-      return;
-    }
-
-    if (id) {
-      loadEvent();
-    }
-  }, [id, user, router]);
-
-  const loadEvent = async () => {
+  const loadEvent = useCallback(async () => {
     try {
       const eventId = parseInt(id as string);
       const response = await eventsAPI.getEvent(eventId);
@@ -52,7 +41,18 @@ export default function CheckinPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    if (user && user.role !== UserRole.STUDENT) {
+      router.push('/events');
+      return;
+    }
+
+    if (id) {
+      loadEvent();
+    }
+  }, [id, user, router, loadEvent]);
 
   const handleQRScan = async (qrData: string) => {
     if (!event || checkinLoading) return;
@@ -143,7 +143,7 @@ export default function CheckinPage() {
                 Successfully Checked In!
               </h3>
               <p className="text-green-800 mb-4">
-                You have been marked present for "{event.name}"
+                You have been marked present for &quot;{event.name}&quot;
               </p>
               <p className="text-sm text-green-700 mb-6">
                 Redirecting to events page in 3 seconds...

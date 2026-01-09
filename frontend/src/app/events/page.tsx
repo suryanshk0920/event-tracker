@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { eventsAPI } from '@/lib/api';
@@ -283,17 +284,14 @@ const QRModal: React.FC<{
 
 export default function EventsPage() {
   const { user } = useAuth();
+  const router = useRouter();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [isQRModalOpen, setIsQRModalOpen] = useState(false);
 
-  useEffect(() => {
-    loadEvents();
-  }, []);
-
-  const loadEvents = async () => {
+  const loadEvents = useCallback(async () => {
     try {
       const response = await eventsAPI.getEvents();
       setEvents(response.events);
@@ -303,7 +301,11 @@ export default function EventsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadEvents();
+  }, [loadEvents]);
 
   const handleViewQR = (event: Event) => {
     setSelectedEvent(event);
@@ -312,7 +314,7 @@ export default function EventsPage() {
 
   const handleViewAttendees = (event: Event) => {
     // Navigate to attendees page
-    window.location.href = `/events/${event.id}/attendees`;
+    router.push(`/events/${event.id}/attendees`);
   };
 
   const handleDeleteEvent = async (event: Event) => {

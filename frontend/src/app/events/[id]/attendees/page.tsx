@@ -1,13 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { eventsAPI } from '@/lib/api';
 import { Event, UserRole, AttendingStudent } from '@/types';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
 import { Card, CardHeader, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -135,6 +134,44 @@ export default function AttendeesPage() {
   const eventId = id ? parseInt(id as string) : null;
   const { isConnected, newAttendee, error: sseError } = useEventSSE(eventId);
 
+  const loadStudents = useCallback(async () => {
+    if (!id) return;
+
+    setStudentsLoading(true);
+    try {
+      const eventId = parseInt(id as string);
+      const params: Record<string, string> = {};
+
+      if (selectedDivision) params.division = selectedDivision;
+      if (selectedDepartment) params.department = selectedDepartment;
+
+      const response = await eventsAPI.getEventStudents(eventId, params);
+      setStudents(response.students);
+      setFromCache(response.from_cache || false);
+    } catch (err) {
+      console.error('Failed to load students:', err);
+    } finally {
+      setStudentsLoading(false);
+    }
+  }, [id, selectedDivision, selectedDepartment]);
+
+  const loadEventAndStudents = useCallback(async () => {
+    try {
+      const eventId = parseInt(id as string);
+      const [eventResponse] = await Promise.all([
+        eventsAPI.getEvent(eventId)
+      ]);
+
+      setEvent(eventResponse.event);
+      await loadStudents();
+    } catch (err) {
+      const error = err as { response?: { data?: { error?: string } } };
+      setError(error.response?.data?.error || 'Failed to load event');
+    } finally {
+      setLoading(false);
+    }
+  }, [id, loadStudents]);
+
   useEffect(() => {
     if (user && user.role !== UserRole.FACULTY && user.role !== UserRole.ADMIN && user.role !== UserRole.ORGANIZER) {
       router.push('/events');
@@ -144,7 +181,7 @@ export default function AttendeesPage() {
     if (id) {
       loadEventAndStudents();
     }
-  }, [id, user, router]);
+  }, [id, user, router, loadEventAndStudents]);
 
   // Handle new attendee from SSE
   useEffect(() => {
@@ -177,45 +214,7 @@ export default function AttendeesPage() {
     if (event) {
       loadStudents();
     }
-  }, [selectedDivision, selectedDepartment]);
-
-  const loadEventAndStudents = async () => {
-    try {
-      const eventId = parseInt(id as string);
-      const [eventResponse] = await Promise.all([
-        eventsAPI.getEvent(eventId)
-      ]);
-
-      setEvent(eventResponse.event);
-      await loadStudents();
-    } catch (err) {
-      const error = err as { response?: { data?: { error?: string } } };
-      setError(error.response?.data?.error || 'Failed to load event');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadStudents = async () => {
-    if (!id) return;
-
-    setStudentsLoading(true);
-    try {
-      const eventId = parseInt(id as string);
-      const params: Record<string, string> = {};
-
-      if (selectedDivision) params.division = selectedDivision;
-      if (selectedDepartment) params.department = selectedDepartment;
-
-      const response = await eventsAPI.getEventStudents(eventId, params);
-      setStudents(response.students);
-      setFromCache(response.from_cache || false);
-    } catch (err) {
-      console.error('Failed to load students:', err);
-    } finally {
-      setStudentsLoading(false);
-    }
-  };
+  }, [selectedDivision, selectedDepartment, event, loadStudents]);
 
   const exportData = () => {
     if (students.length === 0) return;

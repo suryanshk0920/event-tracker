@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { eventsAPI, usersAPI } from '@/lib/api';
-import { UserRole, Event } from '@/types';
+import { UserRole, Event, User } from '@/types';
 import { Calendar, Users, TrendingUp, Clock, RefreshCw } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Button } from '@/components/ui/Button';
@@ -33,8 +34,7 @@ const StatCard: React.FC<{
   </div>
 );
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const WelcomeCard: React.FC<{ user: any; onRefresh: () => void; loading: boolean }> = ({ user, onRefresh, loading }) => (
+const WelcomeCard: React.FC<{ user: User; onRefresh: () => void; loading: boolean }> = ({ user, onRefresh, loading }) => (
   <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700 overflow-hidden shadow-2xl rounded-2xl relative">
     {/* Decorative elements */}
     <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 via-purple-400/20 to-indigo-400/20 animate-pulse"></div>
@@ -90,27 +90,24 @@ const WelcomeCard: React.FC<{ user: any; onRefresh: () => void; loading: boolean
 export default function DashboardPage() {
   const { user } = useAuth();
   const [events, setEvents] = useState<Event[]>([]);
-  const [students, setStudents] = useState<any[]>([]);
+  const [students, setStudents] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    if (user) {
-      loadDashboardData();
-    }
-  }, [user]);
-
-  const loadDashboardData = async () => {
+  const loadDashboardData = useCallback(async () => {
     try {
       setLoading(true);
       const promises: Promise<unknown>[] = [eventsAPI.getEvents()];
 
       // Only fetch students for faculty and admin
-      if ([UserRole.FACULTY, UserRole.ADMIN].includes(user!.role)) {
+      if (user && [UserRole.FACULTY, UserRole.ADMIN].includes(user.role)) {
         promises.push(usersAPI.getUsers({ role: UserRole.STUDENT }));
       }
 
-      const results = await Promise.all(promises) as [any, any?];
+      const results = await Promise.all(promises) as [
+        { events: Event[] },
+        { users: User[] }?
+      ];
       setEvents(results[0].events);
 
       if (results[1]) {
@@ -122,7 +119,13 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadDashboardData();
+    }
+  }, [user, loadDashboardData]);
 
   if (!user) return null;
 
@@ -273,7 +276,7 @@ export default function DashboardPage() {
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {user.role === UserRole.STUDENT && (
                 <>
-                  <a
+                  <Link
                     href="/events"
                     className="group block p-6 bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-100 rounded-2xl hover:shadow-lg hover:scale-105 transition-all duration-300 hover:border-blue-300"
                   >
@@ -283,13 +286,13 @@ export default function DashboardPage() {
                     </div>
                     <p className="text-lg font-bold text-gray-900 mb-2">View Events</p>
                     <p className="text-sm text-gray-600">Browse available events and join them</p>
-                  </a>
+                  </Link>
                 </>
               )}
 
               {user.role === UserRole.FACULTY && (
                 <>
-                  <a
+                  <Link
                     href="/events"
                     className="group block p-6 bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-100 rounded-2xl hover:shadow-lg hover:scale-105 transition-all duration-300 hover:border-blue-300"
                   >
@@ -299,8 +302,8 @@ export default function DashboardPage() {
                     </div>
                     <p className="text-lg font-bold text-gray-900 mb-2">View Events</p>
                     <p className="text-sm text-gray-600">Monitor all events and attendance</p>
-                  </a>
-                  <a
+                  </Link>
+                  <Link
                     href="/students"
                     className="group block p-6 bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-100 rounded-2xl hover:shadow-lg hover:scale-105 transition-all duration-300 hover:border-green-300"
                   >
@@ -310,13 +313,13 @@ export default function DashboardPage() {
                     </div>
                     <p className="text-lg font-bold text-gray-900 mb-2">View Students</p>
                     <p className="text-sm text-gray-600">Track student attendance records</p>
-                  </a>
+                  </Link>
                 </>
               )}
 
               {user.role === UserRole.ORGANIZER && (
                 <>
-                  <a
+                  <Link
                     href="/create-event"
                     className="group block p-6 bg-gradient-to-br from-purple-50 to-violet-50 border-2 border-purple-100 rounded-2xl hover:shadow-lg hover:scale-105 transition-all duration-300 hover:border-purple-300"
                   >
@@ -326,8 +329,8 @@ export default function DashboardPage() {
                     </div>
                     <p className="text-lg font-bold text-gray-900 mb-2">Create Event</p>
                     <p className="text-sm text-gray-600">Organize new events for students</p>
-                  </a>
-                  <a
+                  </Link>
+                  <Link
                     href="/events"
                     className="group block p-6 bg-gradient-to-br from-teal-50 to-cyan-50 border-2 border-teal-100 rounded-2xl hover:shadow-lg hover:scale-105 transition-all duration-300 hover:border-teal-300"
                   >
@@ -337,24 +340,24 @@ export default function DashboardPage() {
                     </div>
                     <p className="text-lg font-bold text-gray-900 mb-2">My Events</p>
                     <p className="text-sm text-gray-600">Manage and track your events</p>
-                  </a>
+                  </Link>
                 </>
               )}
 
               {user.role === UserRole.ADMIN && (
                 <>
-                  <a
+                  <Link
                     href="/admin/register"
                     className="group block p-6 bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-100 rounded-2xl hover:shadow-lg hover:scale-105 transition-all duration-300 hover:border-purple-300"
                   >
                     <div className="flex items-center justify-between mb-4">
                       <Users className="h-8 w-8 text-purple-600 group-hover:scale-110 transition-transform duration-200" />
-                      <span className="text-purple-400 group-hover:text-purple-600 transition-colors">→</span>
+                      <span className="text-purple-400 group-hover:text-blue-600 transition-colors">→</span>
                     </div>
                     <p className="text-lg font-bold text-gray-900 mb-2">Register User</p>
                     <p className="text-sm text-gray-600">Create new user accounts</p>
-                  </a>
-                  <a
+                  </Link>
+                  <Link
                     href="/students"
                     className="group block p-6 bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-100 rounded-2xl hover:shadow-lg hover:scale-105 transition-all duration-300 hover:border-green-300"
                   >
@@ -364,8 +367,8 @@ export default function DashboardPage() {
                     </div>
                     <p className="text-lg font-bold text-gray-900 mb-2">View Students</p>
                     <p className="text-sm text-gray-600">Manage student records</p>
-                  </a>
-                  <a
+                  </Link>
+                  <Link
                     href="/events"
                     className="group block p-6 bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-100 rounded-2xl hover:shadow-lg hover:scale-105 transition-all duration-300 hover:border-blue-300"
                   >
@@ -375,7 +378,7 @@ export default function DashboardPage() {
                     </div>
                     <p className="text-lg font-bold text-gray-900 mb-2">Manage Events</p>
                     <p className="text-sm text-gray-600">Oversee all system events</p>
-                  </a>
+                  </Link>
                 </>
               )}
             </div>

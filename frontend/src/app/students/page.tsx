@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { usersAPI } from '@/lib/api';
@@ -34,15 +34,7 @@ export default function StudentsPage() {
   const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
 
-  useEffect(() => {
-    loadStudents();
-  }, []);
-
-  useEffect(() => {
-    filterStudents();
-  }, [students, searchTerm, departmentFilter]);
-
-  const loadStudents = async () => {
+  const loadStudents = useCallback(async () => {
     try {
       const response = await usersAPI.getUsers({ role: UserRole.STUDENT });
       setStudents(response.users);
@@ -52,9 +44,13 @@ export default function StudentsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const filterStudents = () => {
+  useEffect(() => {
+    loadStudents();
+  }, [loadStudents]);
+
+  useEffect(() => {
     let filtered = students;
 
     if (searchTerm) {
@@ -69,7 +65,9 @@ export default function StudentsPage() {
     }
 
     setFilteredStudents(filtered);
-  };
+  }, [students, searchTerm, departmentFilter]);
+
+
 
   const getDepartments = () => {
     const departments = [...new Set(students.map(s => s.department))];
