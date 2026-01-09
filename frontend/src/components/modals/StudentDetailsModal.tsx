@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -12,7 +12,6 @@ import {
   Mail,
   School,
   Calendar,
-  MapPin,
   Clock,
   Users,
   GraduationCap,
@@ -37,13 +36,7 @@ export const StudentDetailsModal: React.FC<StudentDetailsModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    if (isOpen && studentId) {
-      loadStudentDetails();
-    }
-  }, [isOpen, studentId]);
-
-  const loadStudentDetails = async () => {
+  const loadStudentDetails = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
@@ -60,7 +53,13 @@ export const StudentDetailsModal: React.FC<StudentDetailsModalProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [studentId]);
+
+  useEffect(() => {
+    if (isOpen && studentId) {
+      loadStudentDetails();
+    }
+  }, [isOpen, studentId, loadStudentDetails]);
 
   const handleClose = () => {
     setStudent(null);
@@ -277,6 +276,10 @@ export const StudentDetailsModal: React.FC<StudentDetailsModalProps> = ({
               </Button>
             </Link>
           </div>
+        </div>
+      ) : studentId ? (
+        <div className="flex justify-center py-8">
+          <LoadingSpinner size="lg" />
         </div>
       ) : null}
     </Modal>

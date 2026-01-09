@@ -1,11 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Mail, User, GraduationCap, Users } from 'lucide-react';
+import { Mail, User, GraduationCap } from 'lucide-react';
 import { UserRole, RegisterRequest } from '@/types';
 import { authAPI } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
@@ -40,7 +39,7 @@ export const RegisterForm: React.FC = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState('');
-  const router = useRouter();
+  // Removed useRouter as it was unused
 
   const {
     register,
@@ -63,7 +62,7 @@ export const RegisterForm: React.FC = () => {
     setLoading(true);
 
     try {
-      const response = await authAPI.register(data as RegisterRequest);
+      await authAPI.register(data as RegisterRequest);
       setSuccess('✅ User registered successfully! Credentials have been sent to their email.');
       reset(); // Reset form after successful registration
 
@@ -211,7 +210,7 @@ export const RegisterForm: React.FC = () => {
               <div className="flex items-start space-x-2">
                 <span className="text-blue-600 text-lg">ℹ️</span>
                 <p className="text-sm text-blue-700">
-                  <strong>Note:</strong> A random password will be generated and sent to the user's email address automatically. Users can change their password after first login.
+                  <strong>Note:</strong> A random password will be generated and sent to the user&apos;s email address automatically. Users can change their password after first login.
                 </p>
               </div>
             </div>

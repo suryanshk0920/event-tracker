@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { eventsAPI } from '@/lib/api';
@@ -20,7 +21,6 @@ import {
   Users,
   QrCode,
   CheckCircle,
-  ExternalLink,
   FileText
 } from 'lucide-react';
 import Link from 'next/link';
@@ -36,13 +36,7 @@ export default function EventDetailsPage() {
   const [qrCode, setQrCode] = useState('');
   const [qrLoading, setQrLoading] = useState(false);
 
-  useEffect(() => {
-    if (id) {
-      loadEvent();
-    }
-  }, [id]);
-
-  const loadEvent = async () => {
+  const loadEvent = useCallback(async () => {
     try {
       const eventId = parseInt(id as string);
       const response = await eventsAPI.getEvent(eventId);
@@ -53,7 +47,13 @@ export default function EventDetailsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    if (id) {
+      loadEvent();
+    }
+  }, [id, loadEvent]);
 
   const handleShowQR = async () => {
     if (!event) return;
@@ -255,7 +255,7 @@ export default function EventDetailsPage() {
                     <>
                       <QrCode className="w-5 h-5 text-blue-500 mr-2" />
                       <span className="font-medium text-blue-800">
-                        You haven't checked in yet
+                        You have not checked in yet
                       </span>
                     </>
                   )}
@@ -278,9 +278,9 @@ export default function EventDetailsPage() {
             {isToday && (
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                 <p className="text-sm text-green-800">
-                  <strong>Today's Event:</strong> This event is happening today!
+                  <strong>Today&apos;s Event:</strong> This event is happening today!
                   {user.role === UserRole.STUDENT && !event.is_attending &&
-                    " Don't forget to check in when you arrive."
+                    " Do not forget to check in when you arrive."
                   }
                 </p>
               </div>
@@ -343,11 +343,15 @@ export default function EventDetailsPage() {
 
             {qrCode && (
               <div className="flex justify-center">
-                <img
-                  src={qrCode}
-                  alt="Event QR Code"
-                  className="border rounded-lg shadow-sm max-w-xs"
-                />
+                <div className="relative w-64 h-64">
+                  <Image
+                    src={qrCode}
+                    alt="Event QR Code"
+                    fill
+                    className="border rounded-lg shadow-sm object-contain"
+                    unoptimized
+                  />
+                </div>
               </div>
             )}
 

@@ -114,7 +114,7 @@ export default function StudentsPage() {
                 <Users className="w-12 h-12 mx-auto mb-3" />
                 <p className="font-medium">Access Restricted</p>
                 <p className="text-sm mt-1">
-                  You don't have permission to view student information.
+                  You do not have permission to view student information.
                 </p>
               </div>
               <Link href="/dashboard">

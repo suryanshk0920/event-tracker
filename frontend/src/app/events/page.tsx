@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { eventsAPI } from '@/lib/api';
@@ -218,13 +219,7 @@ const QRModal: React.FC<{
   const [qrCode, setQrCode] = useState<string>('');
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (isOpen && event) {
-      loadQRCode();
-    }
-  }, [isOpen, event]);
-
-  const loadQRCode = async () => {
+  const loadQRCode = useCallback(async () => {
     if (!event) return;
     setLoading(true);
     try {
@@ -235,7 +230,13 @@ const QRModal: React.FC<{
     } finally {
       setLoading(false);
     }
-  };
+  }, [event]);
+
+  useEffect(() => {
+    if (isOpen && event) {
+      loadQRCode();
+    }
+  }, [isOpen, event, loadQRCode]);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="📱 Event QR Code" size="lg" variant="gradient">
@@ -259,11 +260,15 @@ const QRModal: React.FC<{
           {qrCode && (
             <div className="flex justify-center">
               <div className="bg-white p-6 rounded-2xl shadow-lg border-4 border-gradient-to-r from-blue-200 to-purple-200">
-                <img
-                  src={qrCode}
-                  alt="Event QR Code"
-                  className="w-64 h-64 object-contain rounded-xl"
-                />
+                <div className="relative w-64 h-64 mx-auto">
+                  <Image
+                    src={qrCode}
+                    alt="Event QR Code"
+                    fill
+                    className="object-contain rounded-xl"
+                    unoptimized
+                  />
+                </div>
                 <div className="mt-4 flex items-center justify-center space-x-2">
                   <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                   <span className="text-sm text-gray-500 font-medium">Ready to scan</span>

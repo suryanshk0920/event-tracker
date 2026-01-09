@@ -186,7 +186,7 @@ export const ChangePasswordForm: React.FC = () => {
                                 <ul className="list-disc list-inside space-y-1">
                                     <li>Use a strong, unique password</li>
                                     <li>Include uppercase, lowercase, numbers, and symbols</li>
-                                    <li>Don't reuse passwords from other accounts</li>
+                                    <li>Do not reuse passwords from other accounts</li>
                                 </ul>
                             </div>
                         </div>

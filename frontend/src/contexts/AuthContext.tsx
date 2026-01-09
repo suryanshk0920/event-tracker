@@ -14,7 +14,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const initAuth = async () => {
       const token = Cookies.get('auth_token');
-      
+
       if (token) {
         try {
           const { user } = await authAPI.getProfile();
@@ -24,7 +24,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           Cookies.remove('auth_token');
         }
       }
-      
+
       setLoading(false);
     };
 
@@ -34,16 +34,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string) => {
     try {
       const response = await authAPI.login({ email, password });
-      
+
       // Store token in cookie
-      Cookies.set('auth_token', response.token, { 
+      Cookies.set('auth_token', response.token, {
         expires: 7, // 7 days
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict'
       });
-      
+
       setUser(response.user);
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as { response?: { data?: { error?: string } } };
       throw new Error(error.response?.data?.error || 'Login failed');
     }
   };
